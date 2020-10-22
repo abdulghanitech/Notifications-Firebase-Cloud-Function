@@ -1,13 +1,9 @@
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 admin.initializeApp();
-
+// sendOrderNotificationToUser
 const sendOrderNotificationToUser = async (customerFCMToken, orderStatus) => {
     if (customerFCMToken && customerFCMToken !== "" && orderStatus !== "") {
-        //console.log("The customerFCMToken is ", customerFCMToken);
-        //console.log("the order status is", orderStatus);
-        // let customerFCMTokenArray = [];
-        // customerFCMTokenArray.push(customerFCMToken);
         let message = {
             token: customerFCMToken,
             notification: {
@@ -35,7 +31,6 @@ const sendOrderNotificationToUser = async (customerFCMToken, orderStatus) => {
                 },
             },
         };
-
         switch (orderStatus) {
             case "order_preparing":
                 message.notification.title = "Your order is being prepared!";
@@ -73,8 +68,6 @@ const sendOrderNotificationToUser = async (customerFCMToken, orderStatus) => {
                 );
                 return false;
         }
-        //console.log("the message", message);
-
         admin
             .messaging()
             .send(message)
@@ -88,14 +81,11 @@ const sendOrderNotificationToUser = async (customerFCMToken, orderStatus) => {
             });
     }
 };
-
 const sendOrderNotificationToVendor = async (vendorFCMToken, orderStatus) => {
     console.log("sendOrderNotificationToVendor called!");
     if (vendorFCMToken && vendorFCMToken !== "" && orderStatus !== "") {
         console.log("The vendorFCMToken is ", vendorFCMToken);
         console.log("the order status is", orderStatus);
-        // let vendorFCMTokenArray = [];
-        // vendorFCMTokenArray.push(vendorFCMToken);
         let message = {
             token: vendorFCMToken,
             notification: {
@@ -105,24 +95,13 @@ const sendOrderNotificationToVendor = async (vendorFCMToken, orderStatus) => {
             data: {
                 screen: "Home",
             },
-            // webpush: {
-            //     fcm_options: {
-            //         link: "http://google.com/",
-            //     },
-            // },
         };
-
         switch (orderStatus) {
             case "order_received":
                 message.notification.title = "You've got a new order! ✔";
                 message.notification.body =
                     "Received a new order, please check Feazy console";
-                // message.apns.fcm_options.image =
-                //     "https://image.freepik.com/free-vector/pizza-maker-concept-illustration_114360-3085.jpg";
-                // message.android.notification.image =
-                //     "https://image.freepik.com/free-vector/pizza-maker-concept-illustration_114360-3085.jpg";
                 break;
-
             // case "order_preparing":
             //     message.notification.title = "Your order is being prepared!";
             //     message.notification.body = "It will be ready soon 😋";
@@ -159,8 +138,6 @@ const sendOrderNotificationToVendor = async (vendorFCMToken, orderStatus) => {
                 );
                 return false;
         }
-        console.log("the message", message);
-
         admin
             .messaging()
             .send(message)
@@ -184,7 +161,6 @@ const getVendorsToken = async (restaurantId) => {
         .collection("restaurants")
         .doc(restaurantId)
         .get();
-
     if (restaurantData.exists) {
         console.log("restaurantData exists!!");
         console.log(restaurantData.data());
@@ -227,14 +203,10 @@ exports.notificationService = functions.firestore
         const newValue = change.after.data();
         // ...or the previous value before this update
         const previousValue = change.before.data();
-
         const newOrderStatus = newValue.orderStatus;
         const oldOrderStatus = previousValue.orderStatus;
-
         const customerFCMToken = newValue.customerFCMToken;
-
         const restaurantId = previousValue.restaurantId;
-
         if (newOrderStatus !== oldOrderStatus) {
             //the order status is changed! and hence we're sending a notification
             //send notification to user/customer - Android/Ios Push notification
@@ -246,7 +218,6 @@ exports.notificationService = functions.firestore
             if (newOrderStatus === "order_received") {
                 // get vendor's token, based on the restaurantId
                 let vendorToken = await getVendorsToken(restaurantId);
-
                 //Send web push notification to the restaurant Vendor
                 if (vendorToken && vendorToken !== "") {
                     return await sendOrderNotificationToVendor(
@@ -256,7 +227,7 @@ exports.notificationService = functions.firestore
                 }
             } else {
                 console.log(
-                    "didn't fetched the vendor token nor sent notification as order status is not order_received!"
+                    "didn't fetched the vendor token or sent notification as order status is not order received!"
                 );
             }
 
