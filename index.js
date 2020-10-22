@@ -83,7 +83,8 @@ const sendOrderNotificationToUser = async (customerFCMToken, orderStatus) => {
 };
 const sendOrderNotificationToVendor = async (vendorFCMToken, orderStatus) => {
     console.log("sendOrderNotificationToVendor called!");
-    if (vendorFCMToken && vendorFCMToken !== "" && orderStatus !== "") {
+    //converting nullish to null ( !!vendorFCMToken )
+    if (!!vendorFCMToken && vendorFCMToken.length && orderStatus.length) {
         console.log("The vendorFCMToken is ", vendorFCMToken);
         console.log("the order status is", orderStatus);
         let message = {
@@ -165,7 +166,7 @@ const getVendorsToken = async (restaurantId) => {
         console.log("restaurantData exists!!");
         console.log(restaurantData.data());
         let vendorId = restaurantData.data().vendorId;
-        if (vendorId && vendorId !== "") {
+        if (!!vendorId && vendorId.length) {
             let vendorData = await admin
                 .firestore()
                 .collection("users")
@@ -219,7 +220,7 @@ exports.notificationService = functions.firestore
                 // get vendor's token, based on the restaurantId
                 let vendorToken = await getVendorsToken(restaurantId);
                 //Send web push notification to the restaurant Vendor
-                if (vendorToken && vendorToken !== "") {
+                if (!!vendorToken && vendorToken.length) {
                     return await sendOrderNotificationToVendor(
                         vendorToken,
                         newOrderStatus
